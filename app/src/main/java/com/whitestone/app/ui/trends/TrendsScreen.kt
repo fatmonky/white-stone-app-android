@@ -327,11 +327,13 @@ private fun StackedBarChart(
                     val totalHeight = (total.toFloat() / maxTotal) * chartHeight
                     val blackHeight = (bar.blackCount.toFloat() / maxTotal) * chartHeight
                     val whiteHeight = totalHeight - blackHeight
+                    val whiteTop = chartHeight - totalHeight
+                    val blackTop = chartHeight - blackHeight
 
                     // Black bar (bottom)
                     drawRoundRect(
                         color = blackBarColor.copy(alpha = alpha),
-                        topLeft = Offset(x, chartHeight - totalHeight),
+                        topLeft = Offset(x, blackTop),
                         size = Size(barWidth, blackHeight),
                         cornerRadius = CornerRadius(4.dp.toPx())
                     )
@@ -339,7 +341,7 @@ private fun StackedBarChart(
                     // White bar (top of stack)
                     drawRoundRect(
                         color = whiteBarColor.copy(alpha = alpha),
-                        topLeft = Offset(x, chartHeight - whiteHeight),
+                        topLeft = Offset(x, whiteTop),
                         size = Size(barWidth, whiteHeight),
                         cornerRadius = CornerRadius(4.dp.toPx())
                     )
