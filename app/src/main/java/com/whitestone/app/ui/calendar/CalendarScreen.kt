@@ -56,7 +56,6 @@ import java.time.LocalDate
 @Composable
 fun CalendarScreen(
     onNavigateToStoneDetail: (Long) -> Unit,
-    onNavigateToDayDetail: (String) -> Unit,
     viewModel: CalendarViewModel = hiltViewModel()
 ) {
     val allStones by viewModel.allStones.collectAsState(initial = emptyList())

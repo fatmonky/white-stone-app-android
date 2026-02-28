@@ -111,9 +111,6 @@ fun WhiteStoneNavGraph() {
                 CalendarScreen(
                     onNavigateToStoneDetail = { stoneId ->
                         navController.navigate(Screen.StoneDetail.createRoute(stoneId))
-                    },
-                    onNavigateToDayDetail = { dayKey ->
-                        navController.navigate(Screen.DayDetail.createRoute(dayKey))
                     }
                 )
             }
