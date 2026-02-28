@@ -250,13 +250,29 @@ fun TodayScreen(
                                     cameraDistance = 12f * density
                                 }
                                 .pointerInput(Unit) {
-                                    detectDragGestures { _, dragAmount ->
-                                        if (abs(dragAmount.x) > 30f) {
-                                            flipStone(dragAmount.x)
-                                        } else if (abs(dragAmount.y) > 30f) {
-                                            playFlipHaptic()
-                                            verticalFlipAngle += if (dragAmount.y >= 0) 360f else -360f
+                                    var totalDragX = 0f
+                                    var totalDragY = 0f
+                                    detectDragGestures(
+                                        onDragStart = {
+                                            totalDragX = 0f
+                                            totalDragY = 0f
+                                        },
+                                        onDragCancel = {
+                                            totalDragX = 0f
+                                            totalDragY = 0f
+                                        },
+                                        onDragEnd = {
+                                            if (abs(totalDragX) > abs(totalDragY) && abs(totalDragX) > 30f) {
+                                                flipStone(totalDragX)
+                                            } else if (abs(totalDragY) > abs(totalDragX) && abs(totalDragY) > 30f) {
+                                                playFlipHaptic()
+                                                verticalFlipAngle += if (totalDragY >= 0) 360f else -360f
+                                            }
                                         }
+                                    ) { change, dragAmount ->
+                                        totalDragX += dragAmount.x
+                                        totalDragY += dragAmount.y
+                                        change.consume()
                                     }
                                 }
                                 .combinedClickable(
