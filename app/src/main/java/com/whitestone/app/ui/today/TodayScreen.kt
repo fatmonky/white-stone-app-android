@@ -12,6 +12,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,7 +45,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -72,8 +73,9 @@ fun TodayScreen(
     var displayedStoneType by remember { mutableStateOf(StoneType.WHITE) }
     var flipAngle by remember { mutableFloatStateOf(0f) }
     var verticalFlipAngle by remember { mutableFloatStateOf(0f) }
-    var holdScale by remember { mutableFloatStateOf(1f) }
     var addStoneType by remember { mutableStateOf<StoneType?>(null) }
+    val stoneInteractionSource = remember { MutableInteractionSource() }
+    val isStonePressed by stoneInteractionSource.collectIsPressedAsState()
 
     val context = LocalContext.current
     val vibrator = remember { context.getSystemService(Vibrator::class.java) }
@@ -97,8 +99,8 @@ fun TodayScreen(
         label = "verticalFlipAngle"
     )
     val animatedScale by animateFloatAsState(
-        targetValue = holdScale,
-        animationSpec = tween(if (holdScale > 1f) 600 else 150),
+        targetValue = if (isStonePressed) 1.1f else 1f,
+        animationSpec = tween(if (isStonePressed) 600 else 150),
         label = "holdScale"
     )
 
@@ -276,6 +278,8 @@ fun TodayScreen(
                                     }
                                 }
                                 .combinedClickable(
+                                    interactionSource = stoneInteractionSource,
+                                    indication = null,
                                     onClick = { },
                                     onLongClick = {
                                         vibrator?.vibrate(
@@ -284,7 +288,6 @@ fun TodayScreen(
                                                 VibrationEffect.DEFAULT_AMPLITUDE
                                             )
                                         )
-                                        holdScale = 1.0f
                                         addStoneType = displayedStoneType
                                     }
                                 )
