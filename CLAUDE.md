@@ -76,25 +76,37 @@ app/src/main/java/com/whitestone/app/
   - TrendsScreen (stat cards, custom Canvas stacked bar chart, tap-to-expand day detail)
   - AboutScreen (Upagupta story)
 - [x] Git repo initialized and pushed to remote
+- [x] Android debug build/install verification on emulator (`Pixel_5_API_33`)
+- [x] iOS-parity fixes merged:
+  - [x] Today gesture handling now triggers one flip per swipe gesture end (no multi-flip from drag deltas)
+  - [x] Trends stacked bar chart rendering fixed so white segments stack above black segments correctly
+  - [x] Today long-press visual feedback restored (press scale animation)
+  - [x] Removed unused Calendar day-detail callback wiring
+- [x] Kept Add Stone as partial `ModalBottomSheet` interaction (full-screen variant tested and reverted)
 
 ### Blocked / In Progress
-- [ ] **Build verification** — Android Studio needs updating (was running AGP 7.3.1 max, project uses AGP 8.7.3). User is updating Android Studio now.
-- [ ] Java 17 installed via Homebrew and symlinked to `/Library/Java/JavaVirtualMachines/openjdk-17.jdk`
+- [ ] Add automated unit/UI test coverage (`app/src/test` and/or `app/src/androidTest`)
 
 ### Remaining Work
-- [ ] Fix any compilation errors after Android Studio update
-- [ ] Test on emulator/device
+- [ ] Expand emulator/device regression testing beyond core flows
 - [ ] Verify all navigation flows end-to-end
 - [ ] Test data persistence across app restarts
 - [ ] Test 3D stone gestures (swipe left/right to flip, up/down to spin, long-press to add)
 - [ ] Test haptic feedback on all interactions
 - [ ] Test empty states on all screens
 - [ ] Test midnight day rollover
-- [ ] Generate app icon (can reuse iOS SVG asset)
 - [ ] Configure ProGuard rules for release build
 - [ ] Build and test release APK
-- [ ] Verify the stacked bar chart tap detection and label alignment
 - [ ] Test on different screen sizes
+
+## Recent Work Log
+- 2026-02-28:
+  - Verified repeated emulator deploy/run with `:app:installDebug` and `adb shell am start`.
+  - Fixed gesture parity regression in Today screen (single flip per swipe).
+  - Fixed Trends chart bar stacking math.
+  - Restored Today long-press press-state scale feedback.
+  - Removed unused Calendar day-detail callback.
+  - Tested full-screen Add Stone flow and reverted to bottom sheet by request.
 
 ## Key iOS → Android Mappings Used
 | iOS | Android |
