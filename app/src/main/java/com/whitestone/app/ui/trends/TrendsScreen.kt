@@ -50,6 +50,7 @@ import com.whitestone.app.ui.components.EmptyStateView
 import com.whitestone.app.ui.components.StoneIcon
 import com.whitestone.app.ui.components.StoneTimelineItem
 import com.whitestone.app.ui.theme.BrownAccent
+import com.whitestone.app.ui.theme.LightGray
 import com.whitestone.app.util.DateHelpers
 import java.time.LocalDate
 
@@ -295,7 +296,7 @@ private fun StackedBarChart(
     onBarTapped: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val whiteBarColor = Color(0xFFC8C8C8)
+    val whiteBarColor = LightGray
     val blackBarColor = Color(0xFF333333)
     val maxTotal = data.maxOfOrNull { it.whiteCount + it.blackCount } ?: 1
 

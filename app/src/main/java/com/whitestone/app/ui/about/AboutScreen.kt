@@ -1,5 +1,11 @@
 package com.whitestone.app.ui.about
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -14,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.whitestone.app.ui.theme.BrownAccent
@@ -21,6 +29,19 @@ import com.whitestone.app.ui.theme.BrownAccent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen() {
+    val context = LocalContext.current
+    val feedbackEmail = "peijing.teh.dev@gmail.com"
+    val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+    val versionName = packageInfo.versionName ?: "unknown"
+    val versionCode = packageInfo.longVersionCode
+
+    val feedbackBody = buildString {
+        append("\n\n---")
+        append("\nApp Version: $versionName ($versionCode)")
+        append("\nAndroid: ${Build.VERSION.RELEASE}")
+        append("\nDevice: ${Build.MANUFACTURER} ${Build.MODEL}")
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("About") })
@@ -90,6 +111,63 @@ fun AboutScreen() {
                 text = "But you are free to decide for yourself what are good thoughts or bad thoughts that you will be tracking with White Stone.",
                 style = MaterialTheme.typography.bodyLarge
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Feedback",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Have a suggestion, complaint, or comment? We'd love to hear from you.",
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = feedbackEmail,
+                style = MaterialTheme.typography.bodyLarge,
+                color = BrownAccent
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = {
+                    val intent = Intent(
+                        Intent.ACTION_SENDTO,
+                        Uri.parse(
+                            "mailto:$feedbackEmail" +
+                                "?subject=${Uri.encode("White Stone Feedback")}" +
+                                "&body=${Uri.encode(feedbackBody)}"
+                        )
+                    )
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    } else {
+                        val clipboard = context.getSystemService(ClipboardManager::class.java)
+                        val feedbackText = buildString {
+                            append(feedbackEmail)
+                            append(feedbackBody)
+                        }
+                        clipboard?.setPrimaryClip(
+                            ClipData.newPlainText("White Stone feedback", feedbackText)
+                        )
+                        Toast.makeText(
+                            context,
+                            "No mail app found. Feedback email copied to clipboard.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            ) {
+                Text("Send Feedback")
+            }
         }
     }
 }
