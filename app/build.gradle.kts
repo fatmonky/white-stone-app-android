@@ -1,9 +1,47 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+}
+
+val keystoreProperties = Properties().apply {
+    val keystoreFile = rootProject.file("keystore.properties")
+    if (keystoreFile.exists()) {
+        keystoreFile.inputStream().use(::load)
+    }
+}
+
+fun signingValue(key: String): String? {
+    val envKey = "WHITESTONE_${key.uppercase()}"
+    return providers.environmentVariable(envKey).orNull
+        ?: keystoreProperties.getProperty(key)
+}
+
+val releaseStoreFile = signingValue("storeFile")
+val releaseStorePassword = signingValue("storePassword")
+val releaseKeyAlias = signingValue("keyAlias")
+val releaseKeyPassword = signingValue("keyPassword")
+
+val hasReleaseSigning =
+    !releaseStoreFile.isNullOrBlank() &&
+        !releaseStorePassword.isNullOrBlank() &&
+        !releaseKeyAlias.isNullOrBlank() &&
+        !releaseKeyPassword.isNullOrBlank()
+
+val wantsReleaseBuild = gradle.startParameter.taskNames.any { taskName ->
+    "release" in taskName.lowercase()
+}
+
+if (wantsReleaseBuild && !hasReleaseSigning) {
+    throw GradleException(
+        "Release signing is not configured. Add keystore.properties in the project root " +
+            "or set WHITESTONE_STOREFILE, WHITESTONE_STOREPASSWORD, " +
+            "WHITESTONE_KEYALIAS, and WHITESTONE_KEYPASSWORD."
+    )
 }
 
 android {
@@ -18,9 +56,23 @@ android {
         versionName = "1.0"
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = rootProject.file(requireNotNull(releaseStoreFile))
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
