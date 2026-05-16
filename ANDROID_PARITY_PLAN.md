@@ -25,12 +25,64 @@ Android is at pre-v1.2 baseline. iOS has shipped Phases 1–4. Phase 5 (evening 
 
 ---
 
+## Session progress update (2026-05-17)
+
+### Completed this session
+
+- **PR 1 — Review tab consolidation**
+  - Replaced the old bottom-nav shell with **Today / Review / Reflections / About**.
+  - Removed the old Calendar and Trends tab routes and introduced a new `ui/review` tab root.
+  - Preserved the existing stone-logging streak logic inside Review.
+  - Moved the 14-day stacked bar chart into Review and kept the corrected white-over-black stacking math.
+  - Added an all-time month-over-month stacked chart.
+  - Added a quiet Reflections stub tab so the Android shell matches the iOS 4-tab shape while the real Reflection feature is pending.
+  - Adjusted Review ordering after emulator review: summary first, then the Review segmented section (`14 days` / `All-time` / `Patterns`), then Calendar, then selected-day stones.
+
+- **PR 2 — Stone tagging and migration**
+  - Enabled Room schema export and generated v1/v2 schemas under `app/schemas/`.
+  - Bumped `StoneDatabase` to version 2 and added a hand-written `MIGRATION_1_2`.
+  - Added nullable `rootTagsCsv`, `rootDescriptor`, and `intensity` columns to `Stone`.
+  - Added `StoneRoot` and `StoneIntensity` with iOS-compatible raw values.
+  - Added tag parsing/display helpers, including `tagSummaryText`.
+  - Added root, custom root, and intensity chip UI to Add Stone.
+  - Fixed Add Stone sheet layout so the larger form scrolls while Save/Cancel stay reachable.
+  - Added Stone Detail read/edit support for tags.
+  - Added timeline tag summaries under note text.
+  - Added focused tests for tag helpers, DAO tag round-trip, and v1 → v2 migration.
+
+### Validation completed this session
+
+- `./gradlew :app:assembleDebug`
+- `./gradlew :app:testDebugUnitTest`
+- `./gradlew :app:compileDebugAndroidTestKotlin`
+- `./gradlew :app:connectedDebugAndroidTest` on `Pixel_5_API_33`
+- Installed and relaunched debug builds on the running Pixel emulator for visual review.
+
+### Still to do
+
+- **PR 3 — Reflection tab**
+  - Add `Reflection` Room entity/DAO and v2 → v3 migration.
+  - Port `ReflectionQuestions` with iOS-compatible `dayOfYear % 10` rotation.
+  - Replace the current Reflections stub with Daily / By-question / Detail flows.
+  - Add Review calendar reflection dots and DayDetail reflection cards.
+  - Add SuttaCentral attribution/source links in Reflections and About.
+
+- **PR 4 — Pattern surfacing**
+  - Port `PatternEngine.swift` to Kotlin with exact iOS thresholds and phrasing.
+  - Replace the current Patterns placeholder with observations.
+  - Add threshold-edge unit coverage.
+
+- **PR 5 — Evening closure**
+  - Still deferred until iOS ships it or the user explicitly asks Android to lead.
+
+---
+
 ## Architectural decisions (apply to all PRs)
 
 1. **Mirror iOS enum raw values exactly.** `StoneRoot` raw values: `sensual`, `illWill`, `harming`, `renunciation`, `kindness`, `harmlessness`. `StoneIntensity`: `strong`, `weak`. This keeps stored data structurally identical across platforms.
 2. **Use a single `rootTagsCsv: String?` column on Android** (comma-joined raw values). iOS carries both a legacy `root` and a CSV `rootTagsRawValue` only for SwiftData migration safety — Android starts clean and does not need the legacy single-root field. Custom user descriptors go in a separate `rootDescriptor: String?` column, newline-joined, matching iOS.
 3. **Reflection date = `dayKey` string (`yyyy-MM-dd`)**, not a `Long`/`Instant`. Mirrors the existing `Stone.dayKey` approach, sidesteps timezone bugs, and keeps DAO queries trivial.
-4. **Enable schema export.** Flip `exportSchema = false` → `true` on `@Database`. Commit generated JSON under `app/schemas/`. Required for `MigrationTestHelper`. Never ship `.fallbackToDestructiveMigration()`.
+4. **Enable schema export before changing the schema.** First flip `exportSchema = false` → `true` on the unchanged v1 `@Database`, configure `room.schemaLocation`, build, and commit the generated v1 JSON under `app/schemas/`. Only then change entities and bump the DB version. Required for `MigrationTestHelper`. Never ship `.fallbackToDestructiveMigration()`.
 5. **Bump DB version once per PR that changes schema.** Each migration is hand-written and unit-tested.
 6. **No new third-party dependencies.** Project policy. If a phase tempts you toward a library, stop and surface to the user.
 7. **Local-first absolute.** No analytics, no telemetry, no cloud. Same as iOS guiding principles in the v1.2 plan §0.
@@ -55,7 +107,7 @@ Android is at pre-v1.2 baseline. iOS has shipped Phases 1–4. Phase 5 (evening 
 3. Update `ui/navigation/Screen.kt`:
    - Remove `Calendar` and `Trends`.
    - Add `Review`.
-   - Reorder bottom-nav: Today / Review / *(Reflections stub — see PR 3)* / About. In PR 1 just go Today / Review / About (3 tabs), then PR 3 inserts Reflections.
+   - Reorder bottom-nav to Today / Review / Reflections / About. In PR 1, add Reflections as a quiet stub tab that renders the Phase 3 placeholder copy; PR 3 replaces the stub with the real feature. This keeps the Android shell on the same 4-tab shape as iOS throughout the parity work.
 4. Update `WhiteStoneNavGraph.kt` and bottom-nav tab definitions accordingly. Grep for route literals (`"calendar"`, `"trends"`) anywhere they're persisted.
 5. Tab icon: `Icons.Filled.CalendarMonth` or similar — no badge, nothing implying score.
 
@@ -80,7 +132,7 @@ Android is at pre-v1.2 baseline. iOS has shipped Phases 1–4. Phase 5 (evening 
 
 ### Tasks
 
-1. Flip `@Database(exportSchema = false)` → `true` on `StoneDatabase`. Configure `room.schemaLocation` in `app/build.gradle`. Commit the generated `app/schemas/com.whitestone.app.data.StoneDatabase/1.json`.
+1. Flip `@Database(exportSchema = false)` → `true` on the unchanged v1 `StoneDatabase`. Configure `room.schemaLocation` in `app/build.gradle`, build once, and commit the generated `app/schemas/com.whitestone.app.data.StoneDatabase/1.json` before editing the `Stone` entity. If v1 has already been edited in the working tree, reconstruct the production v1 schema JSON from the current released schema and verify it against a v1 database before continuing.
 2. Bump DB to version 2.
 3. Update `Stone` entity:
    ```kotlin
@@ -156,7 +208,7 @@ Android is at pre-v1.2 baseline. iOS has shipped Phases 1–4. Phase 5 (evening 
    - `upsert(...)`, `deleteByDayKey(...)`.
 4. `util/ReflectionQuestions.kt`:
    - 10-element list of strings, verbatim from iOS `ReflectionQuestions.swift`.
-   - `fun questionForDate(date: LocalDate): Pair<Int, String>` using `(date.dayOfYear - 1) % 10` — match iOS implementation exactly. Add a property-style test that picks a few known dates and asserts the same index iOS produces.
+   - `fun questionForDate(date: LocalDate): Pair<Int, String>` using `date.dayOfYear % 10` — match iOS implementation exactly. Add a property-style test that picks a few known dates and asserts the same index iOS produces. Known check: 2026-01-01 must produce index `1`, matching `ReflectionQuestionsTests.swift`.
 5. New `ui/reflection/` package:
    - `ReflectionScreen.kt` — tab root, hosts Today subview by default with a top-right "by question" icon to switch.
    - `ReflectionTodayScreen.kt` — today's date + today's question, free-text editor (placeholder *"Take your time. There's no need to write anything."*), single Save button, in-place save confirmation. Above the editor, if there are ≥1 prior reflections on today's question, show a tappable line: *"you've reflected on this question N times before."* opening By-question expanded to today's question.
@@ -209,7 +261,7 @@ Android is at pre-v1.2 baseline. iOS has shipped Phases 1–4. Phase 5 (evening 
    1. **Time-of-day clustering** — ≥10 stones in last 14d; 4-hour buckets (6–10, 10–14, 14–18, 18–22, 22–6); render only if one bucket >50% for that color.
    2. **Most-tagged root** — ≥5 root-tagged stones in last 14d.
    3. **Intensity tilt** — ≥5 intensity-tagged in last 14d; render only if strong:weak ratio ≥2:1 either direction.
-   4. **Intensity × color cross-tag** — ≥5 intensity-tagged of a single color in last 14d AND ≥70% share an intensity. At most one observation in this category.
+   4. **Intensity × color cross-tag** — for each intensity (`strong`, then `weak`), if ≥5 stones in the last 14d have that intensity, render only if ≥70% of those stones are one color. At most one observation in this category.
    5. **Logging cadence** — *"logging on most days"* iff ≥10 of last 14 days have entries. Else *"it's been a few days since your last entry"* iff last entry ≥3 days ago. Pure observation, no CTA.
 3. Cap at 4 observations rendered; priority order = numeric order above.
 4. Phrasing rules (enforce in tests if practical): lower-case, no exclamation marks, no emoji, no future projection, no thanks/congrats, no week-over-week comparisons.
@@ -250,8 +302,8 @@ Do not start until iOS has shipped Phase 5 OR the user explicitly asks Android t
 ## Execution order summary
 
 ```
-PR 1  phase-1-review-tab          (tab restructure, streak preserved, Patterns stub)
-PR 2  phase-3-stone-tagging       (schema migration scaffolding, tags in AddStone/Detail)
+PR 1  phase-1-review-tab          (done 2026-05-17: tab restructure, streak preserved, Patterns stub)
+PR 2  phase-3-stone-tagging       (done 2026-05-17: schema migration scaffolding, tags in AddStone/Detail)
 PR 3  phase-2-reflection-tab      (Reflection entity, two subviews, detail nav, calendar markers)
 PR 4  phase-4-patterns            (PatternEngine + Patterns view)
 PR 5  phase-5-evening-closure     (deferred until iOS ships it)

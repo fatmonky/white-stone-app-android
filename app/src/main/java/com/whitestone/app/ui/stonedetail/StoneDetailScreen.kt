@@ -39,8 +39,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.whitestone.app.data.StoneIntensity
+import com.whitestone.app.data.StoneRoot
+import com.whitestone.app.data.customRootDescriptors
+import com.whitestone.app.data.roots
+import com.whitestone.app.data.stoneIntensity
+import com.whitestone.app.data.tagSummaryText
+import com.whitestone.app.data.toRootDescriptorString
+import com.whitestone.app.data.toRootTagsCsv
 import com.whitestone.app.data.StoneType
 import com.whitestone.app.ui.components.StoneIcon
+import com.whitestone.app.ui.components.StoneTagEditor
 import com.whitestone.app.util.DateHelpers
 import java.time.Instant
 import java.time.LocalDateTime
@@ -58,6 +67,9 @@ fun StoneDetailScreen(
     var isEditing by remember { mutableStateOf(false) }
     var editedNote by remember { mutableStateOf("") }
     var editedTimestamp by remember { mutableStateOf(0L) }
+    var editedRoots by remember { mutableStateOf<Set<StoneRoot>>(emptySet()) }
+    var editedCustomDescriptors by remember { mutableStateOf(emptyList<String>()) }
+    var editedIntensity by remember { mutableStateOf<StoneIntensity?>(null) }
 
     LaunchedEffect(stoneId) {
         viewModel.loadStone(stoneId)
@@ -105,13 +117,19 @@ fun StoneDetailScreen(
                             isEditing = false
                             editedNote = currentStone.note
                             editedTimestamp = currentStone.timestamp
+                            editedRoots = currentStone.roots.toSet()
+                            editedCustomDescriptors = currentStone.customRootDescriptors
+                            editedIntensity = currentStone.stoneIntensity
                         }) { Text("Cancel") }
                         TextButton(onClick = {
                             viewModel.updateStone(
                                 currentStone.copy(
                                     note = editedNote,
                                     timestamp = editedTimestamp,
-                                    dayKey = DateHelpers.dayKey(editedTimestamp)
+                                    dayKey = DateHelpers.dayKey(editedTimestamp),
+                                    rootTagsCsv = editedRoots.toRootTagsCsv(),
+                                    rootDescriptor = editedCustomDescriptors.toRootDescriptorString(),
+                                    intensity = editedIntensity?.rawValue
                                 )
                             )
                             isEditing = false
@@ -120,6 +138,9 @@ fun StoneDetailScreen(
                         TextButton(onClick = {
                             editedNote = currentStone.note
                             editedTimestamp = currentStone.timestamp
+                            editedRoots = currentStone.roots.toSet()
+                            editedCustomDescriptors = currentStone.customRootDescriptors
+                            editedIntensity = currentStone.stoneIntensity
                             isEditing = true
                         }) { Text("Edit") }
                     }
@@ -150,6 +171,25 @@ fun StoneDetailScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            if (!isEditing && currentStone.tagSummaryText != null) {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Tags",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = currentStone.tagSummaryText.orEmpty(),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Time section
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -260,6 +300,26 @@ fun StoneDetailScreen(
                             text = "No note",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            if (isEditing) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        StoneTagEditor(
+                            stoneType = currentStone.type,
+                            selectedRoots = editedRoots,
+                            onSelectedRootsChange = { editedRoots = it },
+                            customDescriptors = editedCustomDescriptors,
+                            onCustomDescriptorsChange = { editedCustomDescriptors = it },
+                            selectedIntensity = editedIntensity,
+                            onSelectedIntensityChange = { editedIntensity = it },
+                            reusableCustomDescriptors = currentStone.customRootDescriptors
+                                .filter { it !in editedCustomDescriptors }
                         )
                     }
                 }

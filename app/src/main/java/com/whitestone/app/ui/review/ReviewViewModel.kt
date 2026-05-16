@@ -1,4 +1,4 @@
-package com.whitestone.app.ui.trends
+package com.whitestone.app.ui.review
 
 import androidx.lifecycle.ViewModel
 import com.whitestone.app.data.Stone
@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 @HiltViewModel
-class TrendsViewModel @Inject constructor(
+class ReviewViewModel @Inject constructor(
     stoneDao: StoneDao
 ) : ViewModel() {
     val allStones: Flow<List<Stone>> = stoneDao.getAllStones()

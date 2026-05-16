@@ -22,14 +22,24 @@ class TodayViewModel @Inject constructor(
 
     val allStones: Flow<List<Stone>> = stoneDao.getAllStones()
 
-    fun insertStone(type: StoneType, timestampMillis: Long, note: String) {
+    fun insertStone(
+        type: StoneType,
+        timestampMillis: Long,
+        note: String,
+        rootTagsCsv: String? = null,
+        rootDescriptor: String? = null,
+        intensity: String? = null
+    ) {
         viewModelScope.launch {
             stoneDao.insert(
                 Stone(
                     type = type,
                     timestamp = timestampMillis,
                     note = note,
-                    dayKey = DateHelpers.dayKey(timestampMillis)
+                    dayKey = DateHelpers.dayKey(timestampMillis),
+                    rootTagsCsv = rootTagsCsv,
+                    rootDescriptor = rootDescriptor,
+                    intensity = intensity
                 )
             )
         }

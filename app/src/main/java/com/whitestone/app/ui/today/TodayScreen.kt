@@ -342,9 +342,17 @@ fun TodayScreen(
     addStoneType?.let { type ->
         AddStoneSheet(
             stoneType = type,
+            allStones = allStones,
             onDismiss = { addStoneType = null },
-            onSave = { stoneType, timestamp, note ->
-                viewModel.insertStone(stoneType, timestamp, note)
+            onSave = { stoneType, timestamp, note, rootTagsCsv, rootDescriptor, intensity ->
+                viewModel.insertStone(
+                    type = stoneType,
+                    timestampMillis = timestamp,
+                    note = note,
+                    rootTagsCsv = rootTagsCsv,
+                    rootDescriptor = rootDescriptor,
+                    intensity = intensity
+                )
                 addStoneType = null
             }
         )

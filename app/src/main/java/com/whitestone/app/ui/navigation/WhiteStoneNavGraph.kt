@@ -5,10 +5,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -27,12 +27,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.whitestone.app.ui.about.AboutScreen
-import com.whitestone.app.ui.calendar.CalendarScreen
 import com.whitestone.app.ui.daydetail.DayDetailScreen
+import com.whitestone.app.ui.reflection.ReflectionStubScreen
+import com.whitestone.app.ui.review.ReviewScreen
 import com.whitestone.app.ui.splash.SplashScreen
 import com.whitestone.app.ui.stonedetail.StoneDetailScreen
 import com.whitestone.app.ui.today.TodayScreen
-import com.whitestone.app.ui.trends.TrendsScreen
 
 private data class BottomNavItem(
     val label: String,
@@ -42,8 +42,8 @@ private data class BottomNavItem(
 
 private val bottomNavItems = listOf(
     BottomNavItem("Today", Icons.Filled.Circle, Screen.Today.route),
-    BottomNavItem("Calendar", Icons.Filled.CalendarMonth, Screen.Calendar.route),
-    BottomNavItem("Trends", Icons.Filled.ShowChart, Screen.Trends.route),
+    BottomNavItem("Review", Icons.Filled.CalendarMonth, Screen.Review.route),
+    BottomNavItem("Reflections", Icons.AutoMirrored.Filled.MenuBook, Screen.Reflections.route),
     BottomNavItem("About", Icons.Filled.Info, Screen.About.route),
 )
 
@@ -107,19 +107,15 @@ fun WhiteStoneNavGraph() {
                     }
                 )
             }
-            composable(Screen.Calendar.route) {
-                CalendarScreen(
+            composable(Screen.Review.route) {
+                ReviewScreen(
                     onNavigateToStoneDetail = { stoneId ->
                         navController.navigate(Screen.StoneDetail.createRoute(stoneId))
                     }
                 )
             }
-            composable(Screen.Trends.route) {
-                TrendsScreen(
-                    onNavigateToStoneDetail = { stoneId ->
-                        navController.navigate(Screen.StoneDetail.createRoute(stoneId))
-                    }
-                )
+            composable(Screen.Reflections.route) {
+                ReflectionStubScreen()
             }
             composable(Screen.About.route) {
                 AboutScreen()

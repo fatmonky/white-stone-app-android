@@ -20,7 +20,9 @@ object DatabaseModule {
             context,
             StoneDatabase::class.java,
             "white_stone_db"
-        ).build()
+        )
+            .addMigrations(MIGRATION_1_2)
+            .build()
     }
 
     @Provides

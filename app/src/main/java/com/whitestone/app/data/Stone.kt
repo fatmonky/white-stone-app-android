@@ -9,5 +9,8 @@ data class Stone(
     val type: StoneType,
     val timestamp: Long,
     val note: String = "",
-    val dayKey: String
+    val dayKey: String,
+    val rootTagsCsv: String? = null,
+    val rootDescriptor: String? = null,
+    val intensity: String? = null
 )

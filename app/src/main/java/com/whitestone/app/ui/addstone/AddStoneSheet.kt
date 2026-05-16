@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -36,8 +37,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
+import com.whitestone.app.data.Stone
+import com.whitestone.app.data.StoneIntensity
+import com.whitestone.app.data.StoneRoot
 import com.whitestone.app.data.StoneType
+import com.whitestone.app.data.customRootDescriptors
 import com.whitestone.app.ui.components.StoneIcon
+import com.whitestone.app.ui.components.StoneTagEditor
+import com.whitestone.app.data.toRootDescriptorString
+import com.whitestone.app.data.toRootTagsCsv
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -46,8 +54,9 @@ import java.time.ZoneId
 @Composable
 fun AddStoneSheet(
     stoneType: StoneType,
+    allStones: List<Stone>,
     onDismiss: () -> Unit,
-    onSave: (StoneType, Long, String) -> Unit
+    onSave: (StoneType, Long, String, String?, String?, String?) -> Unit
 ) {
     val now = LocalTime.now()
     val timePickerState = rememberTimePickerState(
@@ -55,10 +64,21 @@ fun AddStoneSheet(
         initialMinute = now.minute
     )
     var note by remember { mutableStateOf("") }
+    var selectedRoots by remember(stoneType) { mutableStateOf<Set<StoneRoot>>(emptySet()) }
+    var customDescriptors by remember(stoneType) { mutableStateOf(emptyList<String>()) }
+    var selectedIntensity by remember { mutableStateOf<StoneIntensity?>(null) }
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val reusableCustomDescriptors = remember(allStones, stoneType, customDescriptors) {
+        allStones
+            .filter { it.type == stoneType }
+            .flatMap { it.customRootDescriptors }
+            .distinct()
+            .filter { it !in customDescriptors }
+            .sorted()
+    }
 
     LaunchedEffect(Unit) {
         focusManager.clearFocus(force = true)
@@ -72,6 +92,7 @@ fun AddStoneSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .fillMaxHeight(0.92f)
                 .imePadding()
                 .navigationBarsPadding()
                 .padding(horizontal = 24.dp)
@@ -80,6 +101,7 @@ fun AddStoneSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
                 Row(
@@ -121,6 +143,19 @@ fun AddStoneSheet(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+
+                StoneTagEditor(
+                    stoneType = stoneType,
+                    selectedRoots = selectedRoots,
+                    onSelectedRootsChange = { selectedRoots = it },
+                    customDescriptors = customDescriptors,
+                    onCustomDescriptorsChange = { customDescriptors = it },
+                    selectedIntensity = selectedIntensity,
+                    onSelectedIntensityChange = { selectedIntensity = it },
+                    reusableCustomDescriptors = reusableCustomDescriptors
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             Row(
@@ -145,7 +180,14 @@ fun AddStoneSheet(
                             selectedTime
                         )
                         val millis = dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                        onSave(stoneType, millis, note)
+                        onSave(
+                            stoneType,
+                            millis,
+                            note,
+                            selectedRoots.toRootTagsCsv(),
+                            customDescriptors.toRootDescriptorString(),
+                            selectedIntensity?.rawValue
+                        )
                     }
                 ) {
                     Text("Save")
