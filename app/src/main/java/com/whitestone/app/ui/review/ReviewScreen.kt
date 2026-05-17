@@ -64,6 +64,9 @@ import com.whitestone.app.ui.theme.BrownAccent
 import com.whitestone.app.ui.theme.LightGray
 import com.whitestone.app.util.ColorHelpers
 import com.whitestone.app.util.DateHelpers
+import com.whitestone.app.util.Observation
+import com.whitestone.app.util.PatternEngine
+import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -141,6 +144,9 @@ fun ReviewScreen(
     }
 
     val monthlyData = remember(allStones) { allTimeMonthlyData(allStones) }
+    val observations = remember(allStones, selectedSecondaryTab) {
+        PatternEngine.observe(allStones, now = Instant.now())
+    }
     val selectedChartStones = remember(allStones, selectedChartDayKey) {
         selectedChartDayKey?.let { key ->
             allStones.filter { it.dayKey == key }.sortedBy { it.timestamp }
@@ -258,14 +264,10 @@ fun ReviewScreen(
 
                 2 -> item {
                     SectionTitle("Patterns")
-                    Text(
-                        text = "Patterns will appear here once you've logged a few weeks of stones.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 20.dp),
-                        textAlign = TextAlign.Center
+                    PatternsView(
+                        stoneCount = allStones.size,
+                        observations = observations,
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             }
@@ -352,6 +354,46 @@ fun ReviewScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PatternsView(
+    stoneCount: Int,
+    observations: List<Observation>,
+    modifier: Modifier = Modifier
+) {
+    if (stoneCount < 10 || observations.isEmpty()) {
+        Text(
+            text = "Patterns will appear here once you've logged a few weeks of stones.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(vertical = 20.dp),
+            textAlign = TextAlign.Center
+        )
+        return
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        observations.forEach { observation ->
+            Text(
+                text = observation.text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
+            )
         }
     }
 }

@@ -100,6 +100,11 @@ app/src/main/java/com/whitestone/app/
 - [ ] Test on different screen sizes
 
 ## Recent Work Log
+- 2026-05-17:
+  - Ported iOS Phase 4 pattern surfacing to Android with local `PatternEngine`.
+  - Wired Review > Patterns to render observations or the under-10-stones empty state.
+  - Added unit coverage for iOS-compatible pattern thresholds, ordering, tie-breaks, and four-observation cap.
+  - Verified with `testDebugUnitTest`, debug build/androidTest compile, `connectedDebugAndroidTest`, install, launch, and UI hierarchy check on `Pixel_5_API_33`.
 - 2026-02-28:
   - Verified repeated emulator deploy/run with `:app:installDebug` and `adb shell am start`.
   - Fixed gesture parity regression in Today screen (single flip per swipe).

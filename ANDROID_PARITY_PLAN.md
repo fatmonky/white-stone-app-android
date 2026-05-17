@@ -81,19 +81,23 @@ Android is at pre-v1.2 baseline. iOS has shipped Phases 1–4. Phase 5 (evening 
   - Review calendar shows a reflection dot on the saved-reflection date.
   - Review selected-day section renders the saved reflection below stones.
 
-### Still to do
-
-- **PR 3 — Reflection tab**
-  - Add `Reflection` Room entity/DAO and v2 → v3 migration.
-  - Port `ReflectionQuestions` with iOS-compatible `dayOfYear % 10` rotation.
-  - Replace the current Reflections stub with Daily / By-question / Detail flows.
-  - Add Review calendar reflection dots and DayDetail reflection cards.
-  - Add SuttaCentral attribution/source links in Reflections and About.
+### Additional progress update (2026-05-17, PR 4)
 
 - **PR 4 — Pattern surfacing**
-  - Port `PatternEngine.swift` to Kotlin with exact iOS thresholds and phrasing.
-  - Replace the current Patterns placeholder with observations.
-  - Add threshold-edge unit coverage.
+  - Ported `PatternEngine.swift` to `PatternEngine.kt` as a pure local function.
+  - Matched the iOS observation order, thresholds, 14-day window, 4-hour time buckets, tie-breaks, copy, and four-observation cap.
+  - Replaced the Review Patterns placeholder with rendered observations while preserving the under-10-stones empty state.
+  - Added threshold-edge unit coverage for all five observation categories and the four-observation cap.
+
+### Additional validation completed (2026-05-17, PR 4)
+
+- `./gradlew :app:testDebugUnitTest`
+- `./gradlew :app:assembleDebug :app:compileDebugAndroidTestKotlin`
+- `./gradlew :app:connectedDebugAndroidTest` on `Pixel_5_API_33`
+- `./gradlew :app:installDebug`
+- Launched the installed debug build on `Pixel_5_API_33` and verified the Review Patterns tab renders the expected empty-state line.
+
+### Still to do
 
 - **PR 5 — Evening closure**
   - Still deferred until iOS ships it or the user explicitly asks Android to lead.
@@ -328,7 +332,7 @@ Do not start until iOS has shipped Phase 5 OR the user explicitly asks Android t
 PR 1  phase-1-review-tab          (done 2026-05-17: tab restructure, streak preserved, Patterns stub)
 PR 2  phase-3-stone-tagging       (done 2026-05-17: schema migration scaffolding, tags in AddStone/Detail)
 PR 3  phase-2-reflection-tab      (Reflection entity, two subviews, detail nav, calendar markers)
-PR 4  phase-4-patterns            (PatternEngine + Patterns view)
+PR 4  phase-4-patterns            (done 2026-05-17: PatternEngine + Patterns view)
 PR 5  phase-5-evening-closure     (deferred until iOS ships it)
 ```
 
