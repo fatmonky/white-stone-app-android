@@ -58,6 +58,29 @@ Android is at pre-v1.2 baseline. iOS has shipped Phases 1–4. Phase 5 (evening 
 - `./gradlew :app:connectedDebugAndroidTest` on `Pixel_5_API_33`
 - Installed and relaunched debug builds on the running Pixel emulator for visual review.
 
+### Additional progress update (2026-05-17)
+
+- **PR 3 — Reflection tab**
+  - Added `Reflection` Room entity/DAO and v2 → v3 migration.
+  - Generated Room schema `app/schemas/com.whitestone.app.data.StoneDatabase/3.json`.
+  - Ported `ReflectionQuestions` with iOS-compatible `dayOfYear % 10` rotation and exact question order.
+  - Replaced the Reflections stub with Daily / By-question / Detail flows.
+  - Added save/update/delete behavior keyed by `dayKey`, including empty-save deletion.
+  - Added Review calendar reflection dots.
+  - Added selected-day reflection cards in Review and DayDetail; tapping opens editable reflection detail.
+  - Added SuttaCentral attribution/source text in Reflections and About.
+  - Added focused tests for question rotation, DAO ordering/delete behavior, and v2 → v3 migration.
+
+### Additional validation completed (2026-05-17)
+
+- `./gradlew :app:compileDebugKotlin :app:installDebug`
+- `./gradlew :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin`
+- `./gradlew :app:connectedDebugAndroidTest` on `Pixel_5_API_33`
+- Emulator visual/UI hierarchy verification confirmed:
+  - Reflections tab shows the daily question/editor rather than the old placeholder.
+  - Review calendar shows a reflection dot on the saved-reflection date.
+  - Review selected-day section renders the saved reflection below stones.
+
 ### Still to do
 
 - **PR 3 — Reflection tab**

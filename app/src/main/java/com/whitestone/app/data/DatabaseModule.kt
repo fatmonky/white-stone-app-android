@@ -21,12 +21,17 @@ object DatabaseModule {
             StoneDatabase::class.java,
             "white_stone_db"
         )
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
     }
 
     @Provides
     fun provideStoneDao(database: StoneDatabase): StoneDao {
         return database.stoneDao()
+    }
+
+    @Provides
+    fun provideReflectionDao(database: StoneDatabase): ReflectionDao {
+        return database.reflectionDao()
     }
 }

@@ -50,4 +50,39 @@ class MigrationTest {
             assertNull(it.getString(6))
         }
     }
+
+    @Test
+    fun migration2To3CreatesReflectionsTableAndUniqueDayKeyIndex() {
+        val dbName = "migration-2-3-test"
+        helper.createDatabase(dbName, 2).apply {
+            execSQL(
+                """
+                INSERT INTO stones (id, type, timestamp, note, dayKey, rootTagsCsv, rootDescriptor, intensity)
+                VALUES (1, 'WHITE', 100, 'Existing', '2026-05-17', NULL, NULL, NULL)
+                """.trimIndent()
+            )
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(dbName, 3, true, MIGRATION_2_3)
+        db.execSQL(
+            """
+            INSERT INTO reflections (id, dayKey, questionIndex, responseText, createdAt, updatedAt)
+            VALUES (1, '2026-05-17', 7, 'response', 100, 100)
+            """.trimIndent()
+        )
+
+        val cursor = db.query(
+            "SELECT dayKey, questionIndex, responseText, createdAt, updatedAt FROM reflections WHERE id = 1"
+        )
+
+        cursor.use {
+            it.moveToFirst()
+            assertEquals("2026-05-17", it.getString(0))
+            assertEquals(7, it.getInt(1))
+            assertEquals("response", it.getString(2))
+            assertEquals(100L, it.getLong(3))
+            assertEquals(100L, it.getLong(4))
+        }
+    }
 }

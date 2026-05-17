@@ -59,6 +59,7 @@ import com.whitestone.app.ui.components.EmptyStateView
 import com.whitestone.app.ui.components.RatioBar
 import com.whitestone.app.ui.components.StoneIcon
 import com.whitestone.app.ui.components.StoneTimelineItem
+import com.whitestone.app.ui.reflection.DayReflectionCard
 import com.whitestone.app.ui.theme.BrownAccent
 import com.whitestone.app.ui.theme.LightGray
 import com.whitestone.app.util.ColorHelpers
@@ -83,9 +84,12 @@ private data class MonthBarData(
 @Composable
 fun ReviewScreen(
     onNavigateToStoneDetail: (Long) -> Unit,
+    onNavigateToReflectionDetail: (String) -> Unit,
     viewModel: ReviewViewModel = hiltViewModel()
 ) {
     val allStones by viewModel.allStones.collectAsState(initial = emptyList())
+    val reflectionDayKeys by viewModel.reflectionDayKeys.collectAsState(initial = emptyList())
+    val allReflections by viewModel.allReflections.collectAsState(initial = emptyList())
     var displayedMonth by remember { mutableStateOf(LocalDate.now()) }
     var selectedDayKey by remember { mutableStateOf<String?>(DateHelpers.todayKey) }
     var selectedSecondaryTab by remember { mutableIntStateOf(0) }
@@ -116,6 +120,9 @@ fun ReviewScreen(
         selectedDayKey?.let { key ->
             allStones.filter { it.dayKey == key }.sortedBy { it.timestamp }
         } ?: emptyList()
+    }
+    val selectedReflection = remember(allReflections, selectedDayKey) {
+        selectedDayKey?.let { key -> allReflections.firstOrNull { it.dayKey == key } }
     }
 
     val dailyData = remember(allStones) {
@@ -292,6 +299,7 @@ fun ReviewScreen(
                         displayedMonth = displayedMonth,
                         selectedDayKey = selectedDayKey,
                         ratioByDay = ratioByDay,
+                        reflectionDayKeys = reflectionDayKeys.toSet(),
                         onDaySelected = { selectedDayKey = it }
                     )
                 }
@@ -307,15 +315,17 @@ fun ReviewScreen(
             if (selectedDayKey != null) {
                 if (selectedStones.isEmpty()) {
                     item {
-                        Text(
-                            text = "No stones recorded this day.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 20.dp),
-                            textAlign = TextAlign.Center
-                        )
+                        if (selectedReflection == null) {
+                            Text(
+                                text = "No stones recorded this day.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 20.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 } else {
                     itemsIndexed(selectedStones, key = { _, stone -> stone.id }) { index, stone ->
@@ -325,6 +335,19 @@ fun ReviewScreen(
                             isLast = index == selectedStones.lastIndex,
                             totalCount = selectedStones.size,
                             onClick = { onNavigateToStoneDetail(stone.id) }
+                        )
+                    }
+                }
+
+                selectedReflection?.let { reflection ->
+                    item {
+                        SectionTitle("Reflection")
+                    }
+                    item {
+                        DayReflectionCard(
+                            reflection = reflection,
+                            onClick = { onNavigateToReflectionDetail(reflection.dayKey) },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         )
                     }
                 }
@@ -425,6 +448,7 @@ private fun CalendarRow(
     displayedMonth: LocalDate,
     selectedDayKey: String?,
     ratioByDay: Map<String, Double?>,
+    reflectionDayKeys: Set<String>,
     onDaySelected: (String) -> Unit
 ) {
     Row(
@@ -442,7 +466,7 @@ private fun CalendarRow(
                     day = day,
                     ratio = ratioByDay[key],
                     isSelected = selectedDayKey == key,
-                    hasReflection = false,
+                    hasReflection = key in reflectionDayKeys,
                     onClick = { onDaySelected(key) },
                     modifier = Modifier.weight(1f)
                 )

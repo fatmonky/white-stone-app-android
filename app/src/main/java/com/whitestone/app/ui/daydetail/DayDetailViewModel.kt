@@ -1,6 +1,8 @@
 package com.whitestone.app.ui.daydetail
 
 import androidx.lifecycle.ViewModel
+import com.whitestone.app.data.Reflection
+import com.whitestone.app.data.ReflectionDao
 import com.whitestone.app.data.Stone
 import com.whitestone.app.data.StoneDao
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,10 +11,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DayDetailViewModel @Inject constructor(
-    private val stoneDao: StoneDao
+    private val stoneDao: StoneDao,
+    private val reflectionDao: ReflectionDao
 ) : ViewModel() {
 
     fun getStonesForDay(dayKey: String): Flow<List<Stone>> {
         return stoneDao.getStonesForDay(dayKey)
+    }
+
+    fun getReflectionForDay(dayKey: String): Flow<Reflection?> {
+        return reflectionDao.getByDayKey(dayKey)
     }
 }

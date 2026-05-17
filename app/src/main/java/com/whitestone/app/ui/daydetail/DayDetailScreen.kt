@@ -44,10 +44,12 @@ import com.whitestone.app.util.DateHelpers
 fun DayDetailScreen(
     dayKey: String,
     onNavigateToStoneDetail: (Long) -> Unit,
+    onNavigateToReflectionDetail: () -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: DayDetailViewModel = hiltViewModel()
 ) {
     val stones by viewModel.getStonesForDay(dayKey).collectAsState(initial = emptyList())
+    val reflection by viewModel.getReflectionForDay(dayKey).collectAsState(initial = null)
     val whiteCount = stones.count { it.type == StoneType.WHITE }
     val blackCount = stones.count { it.type == StoneType.BLACK }
     val dateString = DateHelpers.dateFromDayKey(dayKey)?.let { DateHelpers.fullDateString(it) } ?: dayKey
@@ -101,7 +103,9 @@ fun DayDetailScreen(
 
             if (stones.isEmpty()) {
                 item {
-                    EmptyStateView(message = "No stones recorded this day.")
+                    if (reflection == null) {
+                        EmptyStateView(message = "No stones recorded this day.")
+                    }
                 }
             } else {
                 item {
@@ -119,6 +123,24 @@ fun DayDetailScreen(
                         isLast = index == stones.lastIndex,
                         totalCount = stones.size,
                         onClick = { onNavigateToStoneDetail(stone.id) }
+                    )
+                }
+            }
+
+            reflection?.let { dayReflection ->
+                item {
+                    Text(
+                        text = "Reflection",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+                item {
+                    com.whitestone.app.ui.reflection.DayReflectionCard(
+                        reflection = dayReflection,
+                        onClick = onNavigateToReflectionDetail,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 }
             }

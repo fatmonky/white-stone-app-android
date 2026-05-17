@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,14 +23,17 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.whitestone.app.ui.theme.BrownAccent
+import com.whitestone.app.util.ReflectionQuestions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen() {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val feedbackEmail = "peijing.teh.dev@gmail.com"
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     val versionName = packageInfo.versionName ?: "unknown"
@@ -109,6 +113,29 @@ fun AboutScreen() {
 
             Text(
                 text = "But you are free to decide for yourself what are good thoughts or bad thoughts that you will be tracking with White Stone.",
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Reflections",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = ReflectionQuestions.attributionPrefix + ReflectionQuestions.attributionLinkText,
+                style = MaterialTheme.typography.bodyLarge,
+                color = BrownAccent,
+                modifier = Modifier.clickable {
+                    uriHandler.openUri(ReflectionQuestions.sourceUrl)
+                }
+            )
+            Text(
+                text = ReflectionQuestions.attributionSuffix,
                 style = MaterialTheme.typography.bodyLarge
             )
 

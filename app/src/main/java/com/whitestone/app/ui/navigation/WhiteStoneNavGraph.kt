@@ -28,7 +28,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.whitestone.app.ui.about.AboutScreen
 import com.whitestone.app.ui.daydetail.DayDetailScreen
-import com.whitestone.app.ui.reflection.ReflectionStubScreen
+import com.whitestone.app.ui.reflection.ReflectionDetailScreen
+import com.whitestone.app.ui.reflection.ReflectionScreen
 import com.whitestone.app.ui.review.ReviewScreen
 import com.whitestone.app.ui.splash.SplashScreen
 import com.whitestone.app.ui.stonedetail.StoneDetailScreen
@@ -111,11 +112,18 @@ fun WhiteStoneNavGraph() {
                 ReviewScreen(
                     onNavigateToStoneDetail = { stoneId ->
                         navController.navigate(Screen.StoneDetail.createRoute(stoneId))
+                    },
+                    onNavigateToReflectionDetail = { dayKey ->
+                        navController.navigate(Screen.ReflectionDetail.createRoute(dayKey))
                     }
                 )
             }
             composable(Screen.Reflections.route) {
-                ReflectionStubScreen()
+                ReflectionScreen(
+                    onNavigateToReflectionDetail = { dayKey ->
+                        navController.navigate(Screen.ReflectionDetail.createRoute(dayKey))
+                    }
+                )
             }
             composable(Screen.About.route) {
                 AboutScreen()
@@ -130,6 +138,19 @@ fun WhiteStoneNavGraph() {
                     onNavigateToStoneDetail = { stoneId ->
                         navController.navigate(Screen.StoneDetail.createRoute(stoneId))
                     },
+                    onNavigateToReflectionDetail = {
+                        navController.navigate(Screen.ReflectionDetail.createRoute(dayKey))
+                    },
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = Screen.ReflectionDetail.route,
+                arguments = listOf(navArgument("dayKey") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val dayKey = backStackEntry.arguments?.getString("dayKey") ?: return@composable
+                ReflectionDetailScreen(
+                    dayKey = dayKey,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
