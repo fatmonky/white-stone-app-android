@@ -10,14 +10,18 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -26,8 +30,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.whitestone.app.data.OnboardingStep
 import com.whitestone.app.ui.about.AboutScreen
 import com.whitestone.app.ui.daydetail.DayDetailScreen
+import com.whitestone.app.ui.onboarding.FirstStoneSuccessSheet
+import com.whitestone.app.ui.onboarding.OnboardingViewModel
+import com.whitestone.app.ui.onboarding.WelcomeOnboardingSheet
 import com.whitestone.app.ui.reflection.ReflectionDetailScreen
 import com.whitestone.app.ui.reflection.ReflectionScreen
 import com.whitestone.app.ui.review.ReviewScreen
@@ -48,13 +56,37 @@ private val bottomNavItems = listOf(
     BottomNavItem("About", Icons.Filled.Info, Screen.About.route),
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WhiteStoneNavGraph() {
+fun WhiteStoneNavGraph(
+    onboardingViewModel: OnboardingViewModel = hiltViewModel()
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val onboardingState by onboardingViewModel.uiState.collectAsState()
 
     val showBottomBar = currentRoute in bottomNavItems.map { it.route }
+
+    LaunchedEffect(onboardingState.step, currentRoute) {
+        when (onboardingState.step) {
+            OnboardingStep.REVIEW_TOUR -> {
+                if (currentRoute != Screen.Review.route) {
+                    navController.navigate(Screen.Review.route) {
+                        launchSingleTop = true
+                    }
+                }
+            }
+            OnboardingStep.REFLECTIONS_TOUR -> {
+                if (currentRoute != Screen.Reflections.route) {
+                    navController.navigate(Screen.Reflections.route) {
+                        launchSingleTop = true
+                    }
+                }
+            }
+            else -> Unit
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -105,7 +137,12 @@ fun WhiteStoneNavGraph() {
                 TodayScreen(
                     onNavigateToStoneDetail = { stoneId ->
                         navController.navigate(Screen.StoneDetail.createRoute(stoneId))
-                    }
+                    },
+                    showOnboardingCoach = onboardingState.step == OnboardingStep.TODAY_COACH &&
+                        currentRoute == Screen.Today.route,
+                    onCompleteCoach = onboardingViewModel::completeTodayCoach,
+                    onDismissCoach = onboardingViewModel::dismissOnboarding,
+                    onStoneSaved = onboardingViewModel::onStoneSaved
                 )
             }
             composable(Screen.Review.route) {
@@ -115,14 +152,22 @@ fun WhiteStoneNavGraph() {
                     },
                     onNavigateToReflectionDetail = { dayKey ->
                         navController.navigate(Screen.ReflectionDetail.createRoute(dayKey))
-                    }
+                    },
+                    showTourOverlay = onboardingState.step == OnboardingStep.REVIEW_TOUR &&
+                        currentRoute == Screen.Review.route,
+                    onContinueToReflections = onboardingViewModel::continueToReflections,
+                    onSkipTour = onboardingViewModel::dismissOnboarding
                 )
             }
             composable(Screen.Reflections.route) {
                 ReflectionScreen(
                     onNavigateToReflectionDetail = { dayKey ->
                         navController.navigate(Screen.ReflectionDetail.createRoute(dayKey))
-                    }
+                    },
+                    showTourOverlay = onboardingState.step == OnboardingStep.REFLECTIONS_TOUR &&
+                        currentRoute == Screen.Reflections.route,
+                    onFinishTour = onboardingViewModel::dismissOnboarding,
+                    onSkipTour = onboardingViewModel::dismissOnboarding
                 )
             }
             composable(Screen.About.route) {
@@ -165,5 +210,26 @@ fun WhiteStoneNavGraph() {
                 )
             }
         }
+    }
+
+    if (onboardingState.step == OnboardingStep.WELCOME && currentRoute != Screen.Splash.route) {
+        WelcomeOnboardingSheet(
+            onStartTour = {
+                onboardingViewModel.startTour()
+                if (currentRoute != Screen.Today.route) {
+                    navController.navigate(Screen.Today.route) {
+                        launchSingleTop = true
+                    }
+                }
+            },
+            onSkip = onboardingViewModel::dismissOnboarding
+        )
+    }
+
+    if (onboardingState.showPostFirstEntry) {
+        FirstStoneSuccessSheet(
+            onContinueTour = onboardingViewModel::continueToReview,
+            onFinishWithoutTour = onboardingViewModel::dismissOnboarding
+        )
     }
 }

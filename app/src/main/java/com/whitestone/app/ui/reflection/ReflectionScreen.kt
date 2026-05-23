@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.whitestone.app.data.Reflection
+import com.whitestone.app.ui.onboarding.ReflectionsTourOverlay
 import com.whitestone.app.ui.theme.BrownAccent
 import com.whitestone.app.util.DateHelpers
 import com.whitestone.app.util.ReflectionQuestions
@@ -64,6 +65,9 @@ private enum class ReflectionMode {
 @Composable
 fun ReflectionScreen(
     onNavigateToReflectionDetail: (String) -> Unit,
+    showTourOverlay: Boolean = false,
+    onFinishTour: () -> Unit = {},
+    onSkipTour: () -> Unit = {},
     viewModel: ReflectionViewModel = hiltViewModel()
 ) {
     var mode by rememberSaveable { mutableStateOf(ReflectionMode.Today) }
@@ -75,6 +79,7 @@ fun ReflectionScreen(
                 title = { Text("Reflections") },
                 actions = {
                     IconButton(
+                        enabled = !showTourOverlay,
                         onClick = {
                             mode = if (mode == ReflectionMode.Today) {
                                 ReflectionMode.ByQuestion
@@ -117,6 +122,12 @@ fun ReflectionScreen(
                     onNavigateToReflectionDetail = onNavigateToReflectionDetail
                 )
             }
+
+            ReflectionsTourOverlay(
+                visible = showTourOverlay,
+                onFinishTour = onFinishTour,
+                onSkipTour = onSkipTour
+            )
         }
     }
 }

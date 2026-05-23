@@ -59,6 +59,7 @@ import com.whitestone.app.ui.components.EmptyStateView
 import com.whitestone.app.ui.components.RatioBar
 import com.whitestone.app.ui.components.StoneIcon
 import com.whitestone.app.ui.components.StoneTimelineItem
+import com.whitestone.app.ui.onboarding.ReviewTourOverlay
 import com.whitestone.app.ui.reflection.DayReflectionCard
 import com.whitestone.app.ui.theme.BrownAccent
 import com.whitestone.app.ui.theme.LightGray
@@ -88,6 +89,9 @@ private data class MonthBarData(
 fun ReviewScreen(
     onNavigateToStoneDetail: (Long) -> Unit,
     onNavigateToReflectionDetail: (String) -> Unit,
+    showTourOverlay: Boolean = false,
+    onContinueToReflections: () -> Unit = {},
+    onSkipTour: () -> Unit = {},
     viewModel: ReviewViewModel = hiltViewModel()
 ) {
     val allStones by viewModel.allStones.collectAsState(initial = emptyList())
@@ -153,17 +157,18 @@ fun ReviewScreen(
         } ?: emptyList()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Review") })
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(vertical = 8.dp)
-        ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(title = { Text("Review") })
+            }
+        ) { padding ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(vertical = 8.dp)
+            ) {
             item {
                 StatStrip(
                     totalDaysTracked = totalDaysTracked,
@@ -354,7 +359,14 @@ fun ReviewScreen(
                     }
                 }
             }
+            }
         }
+
+        ReviewTourOverlay(
+            visible = showTourOverlay,
+            onContinueToReflections = onContinueToReflections,
+            onSkipTour = onSkipTour
+        )
     }
 }
 

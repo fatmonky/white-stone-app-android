@@ -57,6 +57,7 @@ import com.whitestone.app.ui.addstone.AddStoneSheet
 import com.whitestone.app.ui.components.RatioBar
 import com.whitestone.app.ui.components.StoneIcon
 import com.whitestone.app.ui.components.StoneTimelineItem
+import com.whitestone.app.ui.onboarding.OnboardingCoachOverlay
 import com.whitestone.app.util.DateHelpers
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -66,6 +67,10 @@ import kotlin.math.abs
 @Composable
 fun TodayScreen(
     onNavigateToStoneDetail: (Long) -> Unit,
+    showOnboardingCoach: Boolean = false,
+    onCompleteCoach: () -> Unit = {},
+    onDismissCoach: () -> Unit = {},
+    onStoneSaved: () -> Unit = {},
     viewModel: TodayViewModel = hiltViewModel()
 ) {
     val allStones by viewModel.allStones.collectAsState(initial = emptyList())
@@ -118,6 +123,12 @@ fun TodayScreen(
 
     // Midnight rollover detection
     LaunchedEffect(Unit) {
+        viewModel.stoneSavedEvents.collect {
+            onStoneSaved()
+        }
+    }
+
+    LaunchedEffect(Unit) {
         while (true) {
             delay(60_000)
             val now = LocalDate.now()
@@ -144,24 +155,25 @@ fun TodayScreen(
         }, 200)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "White Stone",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            )
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "White Stone",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                )
+            }
+        ) { padding ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
             // Header: date + ratio bar
             item {
                 Column(
@@ -335,7 +347,14 @@ fun TodayScreen(
                     )
                 }
             }
+            }
         }
+
+        OnboardingCoachOverlay(
+            visible = showOnboardingCoach,
+            onCompleteCoach = onCompleteCoach,
+            onDismissCoach = onDismissCoach
+        )
     }
 
     // Add stone bottom sheet
