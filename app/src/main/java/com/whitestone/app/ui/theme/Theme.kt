@@ -3,6 +3,7 @@ package com.whitestone.app.ui.theme
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -25,15 +26,33 @@ private val LightColorScheme = lightColorScheme(
     onSurfaceVariant = DarkGray,
 )
 
+private val DarkColorScheme = darkColorScheme(
+    primary = BrownLight,
+    onPrimary = Black,
+    primaryContainer = BrownDark,
+    onPrimaryContainer = White,
+    secondary = BrownLight,
+    onSecondary = Black,
+    background = Black,
+    onBackground = White,
+    surface = NearBlack,
+    onSurface = White,
+    surfaceVariant = Charcoal,
+    onSurfaceVariant = MediumGray,
+)
+
 @Composable
 fun WhiteStoneTheme(content: @Composable () -> Unit) {
-    val colorScheme = LightColorScheme
+    val darkTheme = isSystemInDarkTheme()
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = White.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            window.statusBarColor = colorScheme.background.toArgb()
+            window.navigationBarColor = colorScheme.surface.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
     }
 
