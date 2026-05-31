@@ -39,6 +39,9 @@ fun StoneTagEditor(
 ) {
     var showCustomInput by remember { mutableStateOf(false) }
     var customInput by remember { mutableStateOf("") }
+    val visibleCustomDescriptors = remember(customDescriptors, reusableCustomDescriptors) {
+        (customDescriptors + reusableCustomDescriptors).distinct()
+    }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -63,7 +66,7 @@ fun StoneTagEditor(
                 )
             }
 
-            reusableCustomDescriptors.forEach { descriptor ->
+            visibleCustomDescriptors.forEach { descriptor ->
                 FilterChip(
                     selected = descriptor in customDescriptors,
                     onClick = {
