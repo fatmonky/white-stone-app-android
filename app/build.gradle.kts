@@ -56,11 +56,16 @@ android {
         applicationId = "com.whitestone.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.0"
+        versionCode = 4
+        versionName = "1.0.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
+            // The only native lib is the prebuilt libandroidx.graphics.path.so from
+            // AndroidX, which ships already stripped — AGP can't extract symbols from
+            // it at any level. This stays set so that if a future native lib WITH
+            // symbols is added, they're embedded automatically. Until then, Play's
+            // "missing debug symbols" notice is expected and harmless (not our code).
             debugSymbolLevel = "SYMBOL_TABLE"
         }
     }
