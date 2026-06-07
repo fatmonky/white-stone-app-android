@@ -31,7 +31,7 @@ private fun SmallStone(type: StoneType, size: Dp, modifier: Modifier = Modifier)
     Box(
         modifier = modifier
             .size(size)
-            .border(1.dp, Color.Gray.copy(alpha = 0.4f), CircleShape)
+            .border(1.dp, Color(0xFF808080), CircleShape)
     ) {
         Canvas(modifier = Modifier.size(size)) {
             drawCircle(color = fillColor)
@@ -110,9 +110,13 @@ private fun DrawScope.drawLargeStone(
         )
     )
 
-    // Edge definition
+    // Edge definition — clear grey boundary so the stone reads against any
+    // backdrop (e.g. black stone in dark mode). Inset by half the stroke width
+    // so the full border stays inside the canvas instead of being clipped.
+    val strokeWidth = 1.dp.toPx()
     drawCircle(
         color = Color(0xFF808080),
-        style = androidx.compose.ui.graphics.drawscope.Stroke(width = 0.5f)
+        radius = radius - strokeWidth / 2f,
+        style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
     )
 }
