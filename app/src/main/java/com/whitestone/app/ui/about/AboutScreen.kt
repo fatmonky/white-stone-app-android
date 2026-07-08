@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.pm.PackageInfoCompat
 import com.whitestone.app.ui.theme.BrownAccent
 import com.whitestone.app.util.ReflectionQuestions
 
@@ -37,7 +38,7 @@ fun AboutScreen() {
     val feedbackEmail = "peijing.teh.dev@gmail.com"
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     val versionName = packageInfo.versionName ?: "unknown"
-    val versionCode = packageInfo.longVersionCode
+    val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
 
     val feedbackBody = buildString {
         append("\n\n---")
